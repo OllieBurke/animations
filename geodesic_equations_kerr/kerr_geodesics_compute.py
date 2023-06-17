@@ -57,7 +57,6 @@ E0 = E_interp(0)
 L0 = L_interp(0)
 Q0 = Q_interp(0)
 
-
 def Kerr_geodesic_eqn(t, y, p , e , a, E, L, Q):
     """
         Computes the derivatives of the Kerr geodesic equations at a given time.
@@ -106,17 +105,14 @@ t_span = (t_start,t_end)
 t_eval = np.arange(t_start, t_end,dt_M)
 
 psi0 = 0 # Here we start at periastron
-theta0 = iota0 # Here we start at theta = iota0. Not sure this is correct
-
-z_p, z_m = roots_z_equation(a, E0, L0, Q0)
-chi0 = (np.cos(theta0)**2 / z_m)**(1/2) # Starting value for chi0
-
+chi0 = np.pi/4 # Here we start at theta = iota0. Not sure this is correct
 phi0 = 0 # Somewhat arbitrary
+
 
 # Store initial conditions
 y0 = [psi0, chi0,phi0] 
 # Integrate geodesic equations
-solution = solve_ivp(Kerr_geodesic_eqn, t_span, y0, args=(p_interp, e_interp, a, E_interp, L_interp, Q_interp),t_eval = t_eval)
+solution = solve_ivp(Kerr_geodesic_eqn, t_span, y0, args=(p_interp, e_interp, a, E_interp, L_interp, Q_interp), t_eval = t_eval)
 
 # Extract solutions
 t_M = solution.t
@@ -124,20 +120,34 @@ psi_sol = solution.y[0]
 chi_sol = solution.y[1]
 phi_sol = solution.y[2]
 
+# Build evolution of integrals of motion
+E_sol = E_interp(t_M)
+L_sol = L_interp(t_M)
+Q_sol = Q_interp(t_M)
+
 # Convert to BL coordinates r and theta
+# radial coordinate r
 r_sol = p_interp(t_M)/(1 + e_interp(t_M)*np.cos(psi_sol))
-theta_sol = np.arccos(np.sqrt(z_m) * np.cos(chi_sol))
+
+# polar angle theta
+z_m_traj = []
+for E_val, L_val, Q_val in zip(E_sol,L_sol,Q_sol):
+    _, z_m = roots_z_equation(a, E_val, L_val, Q_val)
+    z_m_traj.append(z_m)
+
+z_m_traj = np.array(z_m_traj)
+
+theta_sol = np.arccos(np.sqrt(z_m_traj) * np.cos(chi_sol))
 
 # Change to flat space, spherical polar coordinates
 x_sol = r_sol*np.sin(theta_sol)*np.cos(phi_sol)
 y_sol = r_sol*np.sin(theta_sol)*np.sin(phi_sol)
 z_sol = r_sol*np.cos(theta_sol)
-
 # Plot the result
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot(x_sol, y_sol, z_sol)
-ax.scatter([0], [0], [0], color='black', s = 100, marker='o',)  # Add a red dot at x=y=z=0
+ax.scatter([0], [0], [0], color='black', s = 100, marker='o',)  
 ax.set_xlabel(r'$r\sin\theta\cos\phi$')
 ax.set_ylabel(r'$r\sin\theta\sin\phi$')
 ax.set_zlabel(r'$r\cos\theta$')
