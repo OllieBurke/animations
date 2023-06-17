@@ -19,52 +19,59 @@ import matplotlib.cm as cm
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
 
+from few.trajectory.inspiral import EMRIInspiral
+from few.utils.utility import get_separatrix, Y_to_xI
+
 # for importing the external functions–
 import sys
 
 
 # Initial conditions
-pstart = 12
-eta_start = np.log(1e-5)
-M_Kerr = np.log(1e6)
-estart =  0.3
-psi0 = 0
-iotastart =0.2
-chi0 = 0.0
-a =0.9
-# coefficients of: Resonantly enhanced and diminished strong-field gravitational-wave fluxes arXiv:1208.3906v2
-# we could make this coefficients an order of magnitude bigger in order to correct for the duration of the resonance
-tmax= 3e4
+M = 1e6
+mu = 10.0
+a = 0.9
+p0 = 12.0
+e0 =  0.3
+iota0 = 0.5
+Y0 = np.cos(iota0)
+
+Phi_phi0 = 0
+Phi_theta0 = 0
+Phi_r0 = 0 
+
+# Set up length of trajectory in time
+
+T = 3e4 / (365*24*60*60)
+breakpoint()
 dt = 10
-# Give me data ;)
-switch_data_insp = 1
 
-Var = np.array([pstart, eta_start, M_Kerr, estart, psi0, iotastart, chi0, a, coef_res0, coef_res1, coef_res2])
+# Build trajectory - AAK5PN waveform
+traj_module = EMRIInspiral(func = "pn5",integrate_backwards = False)
+t_traj, p_traj, e_traj, Y_traj, Phi_phi_traj, Phi_r_traj, Phi_theta_traj = traj_module(M, mu, a, p0, e0, Y0, 
+                                             Phi_phi0=Phi_phi0, Phi_theta0=Phi_theta0, Phi_r0=Phi_r0, dt = dt, T=T, max_init_len = int(1e4), DENSE_STEPPING = 1)
+breakpoint()
 
-h_p_true, h_c_true, data, start_duration_res = EMRI_NK(Var, tmax, dt, 1)
+# time = data[:,0]; r = data[:,1]; theta = data[:,2]
+# omega_r = data[:,3]
+# omega_theta = data[:,4]
+# omega_phi = data[:,5]
+# E = data[:,6]
+# L_z = data[:,7]
+# Q = data[:,8]
+# psi = data[:,9]
+# chi = data[:,10]
+# phi = data[:,11]
+# p = data[:,12]
+# ecc = data[:,13]
+# iota = data[:,14]
+# dtau = data[:,15]
 
-time = data[:,0]; r = data[:,1]; theta = data[:,2]
-omega_r = data[:,3]
-omega_theta = data[:,4]
-omega_phi = data[:,5]
-E = data[:,6]
-L_z = data[:,7]
-Q = data[:,8]
-psi = data[:,9]
-chi = data[:,10]
-phi = data[:,11]
-p = data[:,12]
-ecc = data[:,13]
-iota = data[:,14]
-dtau = data[:,15]
-#
-start_res = start_duration_res[0]
-duration_res = start_duration_res[1]
+time = tvec
+theta = Phi_theta_traj
+phi = Phi_phi_traj
+p = p_traj
+ecc = e_traj
 
-# index of the resonance
-i_res = np.where((time > start_res) & (time < (start_res + duration_res)))
-print(np.shape(i_res))
-print(omega_theta[i_res] /omega_r[i_res])
 
 x=r*np.sin(theta)*np.cos(phi)
 y= r*np.sin(theta)*np.sin(phi)
