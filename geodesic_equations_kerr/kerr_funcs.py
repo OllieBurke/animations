@@ -54,6 +54,30 @@ def roots_radial_potential(a, E, L, Q):
     r_4 = roots[3]
     return r_a, r_p, r_3, r_4
 
+def theta_potential(theta,a, E, L, Q):
+    """
+    Find the roots of the z equation for a given set of parameters.
+
+    Parameters:
+    - theta (float): Parameter 'theta'
+    - a (float): Parameter 'a'.
+    - E (float): Parameter 'E'.
+    - L (float): Parameter 'L'.
+    - Q (float): Parameter 'Q'.
+
+    Returns:
+    float: The value of the polar potential
+
+    """
+    z = np.cos(theta)**2
+    beta = a**2 * (1 - E**2)
+
+    c0 = beta
+    c1 = -(Q + L**2 + a**2 * (1 - E**2))
+    c2 = Q
+
+    return c0*z**2 + c1*z + c2
+
 def roots_z_equation(a, E, L, Q):
     """
     Find the roots of the z equation for a given set of parameters.

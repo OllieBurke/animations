@@ -16,8 +16,8 @@ import os
 M = 1e6
 mu = 10.0
 a = 0.9
-p0 = 12.0
-e0 =  0.2
+p0 = 5.0
+e0 =  0.5
 iota0 = 0.3
 Y0 = np.cos(iota0)
 
@@ -26,9 +26,14 @@ Phi_theta0 = 0
 Phi_r0 = 0 
 
 # Set up length of trajectory in time (seconds)
-T = 5e4 / (365*24*60*60)
+one_year = 365*24*60*60
+T = 7e3 / (one_year)
 dt = 10 
 
+T_hours = T * one_year / 60
+# breakpoint()
+
+N_days = T*365
 # Build trajectory - AAK5PN waveform - Using time in [M}]
 traj_module = EMRIInspiral(func = "pn5",integrate_backwards = False)
 t_traj, p_traj, e_traj, Y_traj, Phi_phi_traj, Phi_r_traj, Phi_theta_traj = traj_module(M, mu, a, p0, e0, Y0, 
@@ -147,5 +152,6 @@ ax.scatter([0], [0], [0], color='black', s = 100, marker='o',)
 ax.set_xlabel(r'$r\sin\theta\cos\phi$')
 ax.set_ylabel(r'$r\sin\theta\sin\phi$')
 ax.set_zlabel(r'$r\cos\theta$')
-plt.savefig("Kerr_traj_p0_12_e0_0p2_iota0_0p3.png")
+ax.set_title('Near Plunge: Eccentric orbit into a rotating black hole\n$M = 10^{6}M_{\odot}$, $\mu = 10M_{\odot}$, $a = 0.9$, $p_{0} = 5.0$, $e_{0} = 0.5$, $\iota_{0} = 0.3$')
+plt.savefig("Kerr_traj_p0_5_e0_0p5_iota0_0p3.png")
 plt.show()
