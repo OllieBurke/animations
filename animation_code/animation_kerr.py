@@ -1,44 +1,28 @@
-import matplotlib as mpl 
-import matplotlib.pyplot as plt
-plt.rcParams['animation.ffmpeg_path'] = '/usr/local/bin/ffmpeg'
-plt.rcParams['axes.facecolor'] = 'none'
 
+
+# Plotting
+import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 #https://stackoverflow.com/questions/48152754/matplotlib-plot-points-over-time-where-old-points-fade
-import glob
-import numpy as np
-from numpy.linalg import inv
-from scipy import signal
-from scipy.integrate import simps
+import matplotlib.animation as animation
 from mpl_toolkits.mplot3d import Axes3D
-import imageio
-
-import os
-import matplotlib.colors as mcol
-import matplotlib.cm as cm
+from mpl_toolkits.mplot3d.art3d import Line3D
+import matplotlib.animation as animation
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
 
-from few.trajectory.inspiral import EMRIInspiral
-from few.utils.utility import get_separatrix, Y_to_xI
-
-# for importing the external functions–
+import os
 import sys
 sys.path.append("../geodesic_equations_kerr/")
-from kerr_funs import roots_z_equation, deriv_psi_t, deriv_chi_t, deriv_phi_t
-import matplotlib as mpl 
-import matplotlib.pyplot as plt
-plt.rcParams['animation.ffmpeg_path'] = '/usr/local/bin/ffmpeg'
-plt.rcParams['axes.facecolor'] = 'none'
 
-import matplotlib.animation as animation
-#https://stackoverflow.com/questions/48152754/matplotlib-plot-points-over-time-where-old-points-fade
+# for importing the external functions–
+#plt.rcParams['axes.facecolor'] = 'none'
+
 import numpy as np
-
-from kerr_funs import roots_z_equation, deriv_psi_t, deriv_chi_t, deriv_phi_t
 from scipy.integrate import solve_ivp
 from scipy.interpolate import interp1d
 
+from kerr_funcs import roots_z_equation, deriv_psi_t, deriv_chi_t, deriv_phi_t
 from few.trajectory.inspiral import EMRIInspiral
 from few.utils.utility import Y_to_xI, get_kerr_geo_constants_of_motion
 
@@ -50,9 +34,9 @@ import sys
 M = 1e6
 mu = 10.0
 a = 0.9
-p0 = 5.0
-e0 =  0.5
-iota0 = 0.5
+p0 = 10.0
+e0 =  0.3
+iota0 = 0.3
 Y0 = np.cos(iota0)
 
 Phi_phi0 = 0
@@ -172,14 +156,21 @@ x = r_sol*np.sin(theta_sol)*np.cos(phi_sol)
 y = r_sol*np.sin(theta_sol)*np.sin(phi_sol)
 z = r_sol*np.cos(theta_sol)
 
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.mplot3d.art3d import Line3D
-import matplotlib.animation as animation
+Plot_Orbit = False
+if Plot_Orbit:
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(x, y, z)
+    ax.scatter([0], [0], [0], color='black', s = 100, marker='o',)  
+    ax.set_xlabel(r'$r\sin\theta\cos\phi$')
+    ax.set_ylabel(r'$r\sin\theta\sin\phi$')
+    ax.set_zlabel(r'$r\cos\theta$')
+    plt.savefig("Radiation_Reaction_Orbit.png")
+    plt.show()
 
 
-delay = 5 # Length of the green trail
+
+delay = 5 # Length of the compact objects trail
 
 # Animation function
 def func(num, dataSet, line, points, axx):
@@ -192,19 +183,15 @@ def func(num, dataSet, line, points, axx):
     # Check the condition x > 0 and y > 0
     try:
         if dataSet[0, num+delay-1] > 0 and dataSet[1, num+delay-1] > 0:
-            # If condition is true, set higher zorder for line
+            # If in front of black hole
             line.set_zorder(0)
             points.set_zorder(0)
-        else:
-            # Otherwise, set lower zorder for line
+        else: #if behind black hole
             line.set_zorder(2)
             points.set_zorder(2)
     except IndexError:
-        # line.set_zorder(2)
-        # line.set_zorder(0)
         pass
-    #axx.view_init(elev=16., azim=num/10)
-    axx.view_init(elev=16., azim=num/20)
+    axx.view_init(elev=16., azim=num/20)  # azim -> how slowly the plot rotates
     
     return line
 class Arrow3D(FancyArrowPatch):
@@ -230,26 +217,61 @@ ax = fig.add_subplot(111, projection='3d')
 line = Line3D([], [], [], color='red', linewidth=2)
 point = Line3D([], [], [], marker='o', color='blue')
 
+# Define the coordinates for the arrow and line
+# arrow_coords = ([0.0, 0.0], [0.0, 0.0], [max(z)+0.125, max(z)+1.125])
+# line_arrow_coords = ([0.0, 0.0], [0.0, 0.0], [1, max(z)+0.125])
+
+# # Create the arrow
+# arrow = Arrow3D(*line_arrow_coords, mutation_scale=20, lw=3, arrowstyle="-|>", color="r")
+
 
 # a = Arrow3D([0.0, 0.0], [0.0, 0.0], 
-#                 [1.0, 2.0], mutation_scale=20, 
+#                 [max(z)-1, max(z)], mutation_scale=20, 
 #                 lw=3, arrowstyle="-|>", color="r")
 
-# ax.add_artist(a)
+# ax.add_artist(arrow)
+
+# # Create the line segment
+# line = Line3D(*line_arrow_coords, lw=2, color="r")
+
+# Add the line to the plot
+ax.add_line(line)
 # Add Line3D objects to the plot
 ax.plot([0],[0],[0],'ko',ms=50, zorder = 1)
+
+# # Define the coordinates and radius of the sphere
+# center = [0, 0, 0]  # Center coordinates of the sphere
+# radius = 2  # Radius of the sphere
+
+# # Create a meshgrid to generate the coordinates of the sphere's surface
+# u = np.linspace(0, 2 * np.pi, 100)
+# v = np.linspace(0, np.pi, 50)
+
+# x_MBH = radius * np.outer(np.cos(u), np.sin(v))
+# y_MBH = radius * np.outer(np.sin(u), np.sin(v))
+# z_MBH = radius * np.outer(np.ones(np.size(u)), np.cos(v))
+
+# # Plot the sphere's surface
+# ax.plot_surface(x_MBH, y_MBH, z_MBH, color='k', alpha=0.8)
+
 ax.add_line(line)
 ax.add_line(point)
 
 # Axes properties
-ax.set_xlabel('X')
-ax.set_ylabel('Y')
-ax.set_zlabel('Z')
+ax.set_xlabel(r'$r\sin\theta\cos\phi$')
+ax.set_ylabel(r'$r\sin\theta\sin\phi$')
+ax.set_zlabel(r'$r\cos\theta$')
 
 ax.set_xlim([min(x),max(x)])
 ax.set_ylim([min(y),max(y)])
 ax.set_zlim([min(z),max(z)])
-ax.set_title('Eccentric orbit into a rotating black hole\n$M = 10^{6}M_{\odot}$, $\mu = 10M_{\odot}$, $a = 0.9$, $p_{0} = 5.0$, $e_{0} = 0.5$, $\iota_{0} = 0.5$')
+
+breakpoint()
+# Adjust aspect ratio and axis scaling
+# ax.set_box_aspect([1, 1, 1])  # Set aspect ratio to 1:1:1
+# ax.auto_scale_xyz([-8, 8], [-8, 8], [-8, 8])  # Auto scale the axes
+
+ax.set_title('Eccentric orbit into a rotating black hole\n$M = 10^{6}M_{\odot}$, $\mu = 10M_{\odot}$, $a = 0.9$, $p_{0} = 10.0$, $e_{0} = 0.3$, $\iota_{0} = 0.3$')
 plt.tight_layout()
 # Creating the Animation object
 line_ani = animation.FuncAnimation(fig, func, frames=numDataPoints, fargs=(dataSet, line, point, ax), interval=5, blit=False)
@@ -257,11 +279,5 @@ line_ani = animation.FuncAnimation(fig, func, frames=numDataPoints, fargs=(dataS
 # Save the animation as a video file
 writer = animation.PillowWriter(fps=50, metadata=dict(artist='Your Name'))
 print("Now running!")
-line_ani.save('Kerr_Traj.gif', writer=writer)
+line_ani.save('Kerr_Traj_p0_10_e0_0p3_iota0_0p3.gif', writer=writer)
 
-M = 1e6
-mu = 10.0
-a = 0.9
-p0 = 5.0
-e0 =  0.5
-iota0 = 0.5

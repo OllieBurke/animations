@@ -1,30 +1,24 @@
-import matplotlib as mpl 
-import matplotlib.pyplot as plt
-plt.rcParams['animation.ffmpeg_path'] = '/usr/local/bin/ffmpeg'
-plt.rcParams['axes.facecolor'] = 'none'
 
-import matplotlib.animation as animation
-#https://stackoverflow.com/questions/48152754/matplotlib-plot-points-over-time-where-old-points-fade
-import numpy as np
-
-from kerr_funs import roots_z_equation, deriv_psi_t, deriv_chi_t, deriv_phi_t
+from kerr_funcs import roots_z_equation, deriv_psi_t, deriv_chi_t, deriv_phi_t
 from scipy.integrate import solve_ivp
 from scipy.interpolate import interp1d
+import numpy as np
+import matplotlib.pyplot as plt
 
 from few.trajectory.inspiral import EMRIInspiral
 from few.utils.utility import Y_to_xI, get_kerr_geo_constants_of_motion
 
 # for importing the external functions–
-import sys
+import os
 
 
 # Initial conditions
 M = 1e6
 mu = 10.0
 a = 0.9
-p0 = 5.0
-e0 =  0.5
-iota0 = 0.5
+p0 = 12.0
+e0 =  0.2
+iota0 = 0.3
 Y0 = np.cos(iota0)
 
 Phi_phi0 = 0
@@ -32,8 +26,8 @@ Phi_theta0 = 0
 Phi_r0 = 0 
 
 # Set up length of trajectory in time (seconds)
-T = 1e4 / (365*24*60*60)
-dt = 1 
+T = 5e4 / (365*24*60*60)
+dt = 10 
 
 # Build trajectory - AAK5PN waveform - Using time in [M}]
 traj_module = EMRIInspiral(func = "pn5",integrate_backwards = False)
@@ -144,6 +138,8 @@ x_sol = r_sol*np.sin(theta_sol)*np.cos(phi_sol)
 y_sol = r_sol*np.sin(theta_sol)*np.sin(phi_sol)
 z_sol = r_sol*np.cos(theta_sol)
 # Plot the result
+
+os.chdir('plots')
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.plot(x_sol, y_sol, z_sol)
@@ -151,4 +147,5 @@ ax.scatter([0], [0], [0], color='black', s = 100, marker='o',)
 ax.set_xlabel(r'$r\sin\theta\cos\phi$')
 ax.set_ylabel(r'$r\sin\theta\sin\phi$')
 ax.set_zlabel(r'$r\cos\theta$')
+plt.savefig("Kerr_traj_p0_12_e0_0p2_iota0_0p3.png")
 plt.show()
