@@ -10,7 +10,7 @@ from mpl_toolkits.mplot3d.art3d import Line3D
 import matplotlib.animation as animation
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
-
+import subprocess
 import os
 import sys
 sys.path.append("../geodesic_equations_kerr/")
@@ -24,7 +24,7 @@ from scipy.interpolate import interp1d
 
 from kerr_funcs import roots_z_equation, deriv_psi_t, deriv_chi_t, deriv_phi_t
 from few.trajectory.inspiral import EMRIInspiral
-from few.utils.utility import Y_to_xI, get_kerr_geo_constants_of_motion
+from few.utils.utility import Y_to_xI, get_kerr_geo_constants_of_motion, get_separatrix
 
 # for importing the external functions–
 import sys
@@ -34,7 +34,7 @@ import sys
 M = 1e6
 mu = 10.0
 a = 0.9
-p0 = 10.0
+p0 = 12.0
 e0 =  0.3
 iota0 = 0.3
 Y0 = np.cos(iota0)
@@ -57,6 +57,7 @@ p_interp = interp1d(t_traj, p_traj, kind = 'cubic')
 e_interp = interp1d(t_traj, e_traj, kind = 'cubic') 
 
 x_traj = Y_to_xI(a, p_traj, e_traj, Y_traj)
+print("Separatrix located at ",get_separatrix(a, e_traj[-1], x_traj[-1]))
 E,L, Q = get_kerr_geo_constants_of_motion(a, p_traj, e_traj, x_traj)
 
 # Build interpolants for "constants" of motion
@@ -266,12 +267,11 @@ ax.set_xlim([min(x),max(x)])
 ax.set_ylim([min(y),max(y)])
 ax.set_zlim([min(z),max(z)])
 
-breakpoint()
 # Adjust aspect ratio and axis scaling
 # ax.set_box_aspect([1, 1, 1])  # Set aspect ratio to 1:1:1
 # ax.auto_scale_xyz([-8, 8], [-8, 8], [-8, 8])  # Auto scale the axes
 
-ax.set_title('Eccentric orbit into a rotating black hole\n$M = 10^{6}M_{\odot}$, $\mu = 10M_{\odot}$, $a = 0.9$, $p_{0} = 10.0$, $e_{0} = 0.3$, $\iota_{0} = 0.3$')
+ax.set_title('Near_Plunge: Eccentric orbit into a rotating black hole\n$M = 10^{6}M_{\odot}$, $\mu = 10M_{\odot}$, $a = 0.9$, $p_{0} = 12.0$, $e_{0} = 0.3$, $\iota_{0} = 0.3$')
 plt.tight_layout()
 # Creating the Animation object
 line_ani = animation.FuncAnimation(fig, func, frames=numDataPoints, fargs=(dataSet, line, point, ax), interval=5, blit=False)
@@ -279,5 +279,5 @@ line_ani = animation.FuncAnimation(fig, func, frames=numDataPoints, fargs=(dataS
 # Save the animation as a video file
 writer = animation.PillowWriter(fps=50, metadata=dict(artist='Your Name'))
 print("Now running!")
-line_ani.save('Kerr_Traj_p0_10_e0_0p3_iota0_0p3.gif', writer=writer)
-
+line_ani.save('Kerr_Traj_p0_12_e0_0p3_iota0_0p3.gif', writer=writer)
+result = subprocess.run("mv *.gif trajectory_gif", shell=True, capture_output=True, text=True)
