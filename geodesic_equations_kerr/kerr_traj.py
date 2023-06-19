@@ -35,7 +35,7 @@ T_hours = T * one_year / 60
 
 N_days = T*365
 # Build trajectory - AAK5PN waveform - Using time in [M}]
-traj_module = EMRIInspiral(func = "pn5",integrate_backwards = False)
+traj_module = EMRIInspiral(func = "pn5")
 t_traj, p_traj, e_traj, Y_traj, Phi_phi_traj, Phi_r_traj, Phi_theta_traj = traj_module(M, mu, a, p0, e0, Y0, 
                                              Phi_phi0=Phi_phi0, Phi_theta0=Phi_theta0, Phi_r0=Phi_r0, dt = dt, T=T, max_init_len = int(1e7), DENSE_STEPPING = 1, in_coordinate_time=False)
 
