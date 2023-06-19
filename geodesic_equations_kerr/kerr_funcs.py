@@ -1,4 +1,5 @@
 import numpy as np
+# Details of equations found in https://arxiv.org/pdf/gr-qc/0607007.pdf
 
 def radial_potential(r, a, E, L, Q):
     """
