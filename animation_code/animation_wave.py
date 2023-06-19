@@ -36,8 +36,8 @@ M = 1e6
 mu = 10.0
 a = 0.9
 p0 = 12.0
-e0 =  0.3
-iota0 = 0.3
+e0 =  0.001
+iota0 = 0.5
 Y0 = np.cos(iota0)
 
 Phi_phi0 = 0
@@ -45,11 +45,11 @@ Phi_theta0 = 0
 Phi_r0 = 0 
 
 # Set up length of trajectory in time (seconds)
-T = 1e4 / (365*24*60*60)
+T = 1e5 / (365*24*60*60)
 dt = 10 
 
 # Build trajectory - AAK5PN waveform - Using time in [M}]
-traj_module = EMRIInspiral(func = "pn5",integrate_backwards = False)
+traj_module = EMRIInspiral(func = "pn5")
 t_traj, p_traj, e_traj, Y_traj, Phi_phi_traj, Phi_r_traj, Phi_theta_traj = traj_module(M, mu, a, p0, e0, Y0, 
                                              Phi_phi0=Phi_phi0, Phi_theta0=Phi_theta0, Phi_r0=Phi_r0, dt = dt, T=T, max_init_len = int(1e7), DENSE_STEPPING = 1, in_coordinate_time=False)
 
@@ -59,7 +59,32 @@ phiS = 0.5
 qK = 0.5
 phiK = 0.5
 
-wave_generator = GenerateEMRIWaveform('Pn5AAKWaveform')
+# Set up inspiral_kwargs - note use of "integrate_backwards"
+inspiral_kwargs = {
+    "max_init_len": int(1e8),
+    "DENSE_STEPPING": 0,
+    "err": 1e-10, 
+}
+
+# keyword arguments for inspiral generator (RomanAmplitude)
+amplitude_kwargs = {
+    "max_init_len": int(1e5),  # all of the trajectories will be well under len = 1000
+    "use_gpu": False  # GPU is available in this class
+}
+
+# keyword arguments for Ylm generator (GetYlms)
+Ylm_kwargs = {
+    "assume_positive_m": False  # if we assume positive m, it will generate negative m for all m>0
+}
+
+# keyword arguments for summation generator (InterpolatedModeSum)
+sum_kwargs = {
+    "use_gpu": False,  # GPU is availabel for this type of summation
+    "pad_output": False
+    }
+
+wave_generator = GenerateEMRIWaveform('Pn5AAKWaveform', inspiral_kwargs = inspiral_kwargs, amplitude_kwargs = amplitude_kwargs,
+                                                        Ylm_kwargs = Ylm_kwargs, sum_kwargs = sum_kwargs)
 waveform_EMRI = wave_generator(M, mu, a, p0, e0, Y0, dist, qS, phiS, qK, phiK, 
                           Phi_phi0=Phi_phi0, Phi_theta0=Phi_theta0, Phi_r0=Phi_r0, dt=dt, T=T) 
 
@@ -101,5 +126,5 @@ from matplotlib.animation import PillowWriter, FFMpegWriter
 # Save the animation as a video file
 writer = animation.PillowWriter(fps=50, metadata=dict(artist='OllieBurke'))
 print("Now running!")
-line_ani.save('Kerr_Traj_p0_12_e0_0p3_iota0_0p3.gif', writer=writer)
+line_ani.save('Kerr_Traj_p0_12_e0_0_iota0_0p3.gif', writer=writer)
 result = subprocess.run("mv *.gif waveform_gif", shell=True, capture_output=True, text=True)

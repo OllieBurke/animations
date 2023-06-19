@@ -48,7 +48,7 @@ T = 1e4 / (365*24*60*60)
 dt = 10 
 
 # Build trajectory - AAK5PN waveform - Using time in [M}]
-traj_module = EMRIInspiral(func = "pn5",integrate_backwards = False)
+traj_module = EMRIInspiral(func = "pn5")
 t_traj, p_traj, e_traj, Y_traj, Phi_phi_traj, Phi_r_traj, Phi_theta_traj = traj_module(M, mu, a, p0, e0, Y0, 
                                              Phi_phi0=Phi_phi0, Phi_theta0=Phi_theta0, Phi_r0=Phi_r0, dt = dt, T=T, max_init_len = int(1e7), DENSE_STEPPING = 1, in_coordinate_time=False)
 
@@ -118,7 +118,14 @@ t_span = (t_start,t_end)
 t_eval = np.arange(t_start, t_end,dt_M)
 
 psi0 = 0 # Here we start at periastron
-chi0 = np.pi/4 # Here we start at theta = iota0. Not sure this is correct
+
+# Due to numerical error in FEW, we force Q = 0 for purely equatorial orbits
+if (iota0) < 1e-2: # Equatorial - no inclination
+    chi0 = np.pi/2 # Starting value on equatorial plane
+    Q = np.zeros(len(Q))
+    Q_interp = interp1d(t_traj,Q, kind = 'linear')
+else:
+    chi0 = iota0
 phi0 = 0 # Somewhat arbitrary
 
 
@@ -155,30 +162,35 @@ theta_sol = np.arccos(np.sqrt(z_m_traj) * np.cos(chi_sol))
 # Change to flat space, spherical polar coordinates
 x = r_sol*np.sin(theta_sol)*np.cos(phi_sol)
 y = r_sol*np.sin(theta_sol)*np.sin(phi_sol)
-z = r_sol*np.cos(theta_sol)
+
+if iota0 < 1e-2: # For equatorial orbits. Need this for plotting!
+    z = 0.25 + r_sol*np.cos(theta_sol)
+else:
+    z = r_sol*np.cos(theta_sol)
 
 Plot_Orbit = False
 if Plot_Orbit:
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(x, y, z)
-    ax.scatter([0], [0], [0], color='black', s = 100, marker='o',)  
+    ax.scatter([0], [0], [0.25], color='black', s = 100, marker='o',)  
     ax.set_xlabel(r'$r\sin\theta\cos\phi$')
     ax.set_ylabel(r'$r\sin\theta\sin\phi$')
     ax.set_zlabel(r'$r\cos\theta$')
     plt.savefig("Radiation_Reaction_Orbit.png")
     plt.show()
 
-
-
-delay = 5 # Length of the compact objects trail
+# delay = 5 # Length of the compact objects trail
 
 # Animation function
 def func(num, dataSet, line, points, axx):
+    # Need these two lines if we want to see the full trajectory!
+    delay = num 
+    num = 0
     line.set_data(dataSet[0:2, num:num+delay])          # Actually plots the data 
     line.set_3d_properties(dataSet[2, num:num+delay])
 
-    points.set_data(dataSet[0:2, num+delay-1:num+delay])
+    # points.set_data(dataSet[0:2, num+delay-1:num+delay])
     points.set_3d_properties(dataSet[2, num+delay-1:num+delay])
 
     # Check the condition x > 0 and y > 0
@@ -192,7 +204,7 @@ def func(num, dataSet, line, points, axx):
             points.set_zorder(2)
     except IndexError:
         pass
-    axx.view_init(elev=16., azim=num/20)  # azim -> how slowly the plot rotates
+    axx.view_init(elev=16., azim=num/10)  # azim -> how slowly the plot rotates
     
     return line
 class Arrow3D(FancyArrowPatch):
@@ -218,42 +230,13 @@ ax = fig.add_subplot(111, projection='3d')
 line = Line3D([], [], [], color='red', linewidth=2)
 point = Line3D([], [], [], marker='o', color='blue')
 
-# Define the coordinates for the arrow and line
-# arrow_coords = ([0.0, 0.0], [0.0, 0.0], [max(z)+0.125, max(z)+1.125])
-# line_arrow_coords = ([0.0, 0.0], [0.0, 0.0], [1, max(z)+0.125])
-
-# # Create the arrow
-# arrow = Arrow3D(*line_arrow_coords, mutation_scale=20, lw=3, arrowstyle="-|>", color="r")
-
-
-# a = Arrow3D([0.0, 0.0], [0.0, 0.0], 
-#                 [max(z)-1, max(z)], mutation_scale=20, 
-#                 lw=3, arrowstyle="-|>", color="r")
-
-# ax.add_artist(arrow)
-
-# # Create the line segment
-# line = Line3D(*line_arrow_coords, lw=2, color="r")
-
 # Add the line to the plot
 ax.add_line(line)
 # Add Line3D objects to the plot
-ax.plot([0],[0],[0],'ko',ms=50, zorder = 1)
-
-# # Define the coordinates and radius of the sphere
-# center = [0, 0, 0]  # Center coordinates of the sphere
-# radius = 2  # Radius of the sphere
-
-# # Create a meshgrid to generate the coordinates of the sphere's surface
-# u = np.linspace(0, 2 * np.pi, 100)
-# v = np.linspace(0, np.pi, 50)
-
-# x_MBH = radius * np.outer(np.cos(u), np.sin(v))
-# y_MBH = radius * np.outer(np.sin(u), np.sin(v))
-# z_MBH = radius * np.outer(np.ones(np.size(u)), np.cos(v))
-
-# # Plot the sphere's surface
-# ax.plot_surface(x_MBH, y_MBH, z_MBH, color='k', alpha=0.8)
+if iota0 < 1e-2:
+    ax.plot([0],[0],[0.25],'ko',ms=10, zorder = 0)
+else:
+    ax.plot([0],[0],[0],'ko',ms=10, zorder = 0)
 
 ax.add_line(line)
 ax.add_line(point)
@@ -265,13 +248,11 @@ ax.set_zlabel(r'$r\cos\theta$')
 
 ax.set_xlim([min(x),max(x)])
 ax.set_ylim([min(y),max(y)])
-ax.set_zlim([min(z),max(z)])
+if iota0 > 1e-2:
+    ax.set_zlim([min(z),max(z)])
 
-# Adjust aspect ratio and axis scaling
-# ax.set_box_aspect([1, 1, 1])  # Set aspect ratio to 1:1:1
-# ax.auto_scale_xyz([-8, 8], [-8, 8], [-8, 8])  # Auto scale the axes
 
-ax.set_title('Near_Plunge: Eccentric orbit into a rotating black hole\n$M = 10^{6}M_{\odot}$, $\mu = 10M_{\odot}$, $a = 0.9$, $p_{0} = 12.0$, $e_{0} = 0.3$, $\iota_{0} = 0.3$')
+ax.set_title('Weak Field: Eccentric/Inclined orbit into a rotating black hole\n$M = 10^{6}M_{\odot}$, $\mu = 10M_{\odot}$, $a = 0.9$, $p_{0} = 12.0$, $e_{0} = 0.3$, $\iota_{0} = 0.3$')
 plt.tight_layout()
 # Creating the Animation object
 line_ani = animation.FuncAnimation(fig, func, frames=numDataPoints, fargs=(dataSet, line, point, ax), interval=5, blit=False)
@@ -279,5 +260,5 @@ line_ani = animation.FuncAnimation(fig, func, frames=numDataPoints, fargs=(dataS
 # Save the animation as a video file
 writer = animation.PillowWriter(fps=50, metadata=dict(artist='Your Name'))
 print("Now running!")
-line_ani.save('Kerr_Traj_p0_12_e0_0p3_iota0_0p3.gif', writer=writer)
+line_ani.save('Kerr_Traj_full_weak_field.gif', writer=writer)
 result = subprocess.run("mv *.gif trajectory_gif", shell=True, capture_output=True, text=True)
