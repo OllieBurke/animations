@@ -1,5 +1,8 @@
 /FastEMRIWaveforms
+/animations/geodesic_equations_kerr/plots/
 *.gif
+*.png
+*.pdf
 *.DS_Store
 # Byte-compiled / optimized / DLL files
 __pycache__/
