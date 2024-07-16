@@ -107,6 +107,7 @@ psi0 = 0 # Here we start at periastron
 chi0 = np.pi/4 # Here we start at theta = iota0. Not sure this is correct
 phi0 = 0 # Somewhat arbitrary
 
+quit()
 
 # Store initial conditions
 y0 = [psi0, chi0,phi0] 
