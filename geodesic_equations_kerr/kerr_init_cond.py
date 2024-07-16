@@ -16,7 +16,7 @@ def I_chi(t_start, psi0, chi0, p0, e0, a, E0, L0, Q0):
 def I_phi(t_start, psi0, chi0, phi0, p0, e0, a, E0, L0, Q0):
     result, _ = integrate.quad(lambda phi: 1/deriv_phi_t(t_start, psi0, chi0, p0, e0, a,  E0, L0, Q0),0,phi0)
     return result
-def Phi_phi0_r0_theta0_to_psi0_chi0_phi0(Phi_phi0, Phi_theta0, Phi_r0, p0, e0, a, E0, L0, Q0, t_start = 0, max_iterations = 100, tol = 1e-6,
+def Phi_phi0_r0_theta0_to_psi0_chi0_phi0(Phi_phi0, Phi_theta0, Phi_r0, p0, e0, a, E0, L0, Q0, t_start = 0, max_iterations = 100, tol = 1e-10,
                                                 psi0 = None, chi0 = None, phi0 = None):
     # Iterative solver
     if psi0 == None and chi0 == None and phi0 == None:

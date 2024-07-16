@@ -18,12 +18,12 @@ import os
 M = 1e6
 mu = 10.0
 a = 0.9
-p0 = 5.0
-e0 =  0.5
+p0 = 4.0
+e0 =  0.2
 iota0 = 0.3
 Y0 = np.cos(iota0)
 
-Phi_phi0 = 0
+Phi_phi0 = np.pi/3 
 Phi_theta0 = np.pi/4
 Phi_r0 = np.pi/5
 
@@ -109,10 +109,14 @@ psi0 = 0 # Here we start at periastron
 chi0 = 0 # Here we start at theta = iota0. Not sure this is correct
 phi0 = 0 # Somewhat arbitrary
 
+import time
+start = time.time()
 psi0, chi0, phi0 = Phi_phi0_r0_theta0_to_psi0_chi0_phi0(Phi_phi0, Phi_theta0, Phi_r0, p0, e0, a, E0, L0, Q0,
                                                         t_start = 0, max_iterations = 100, tol = 1e-10,
                                                         #psi0 = None, chi0 = None, phi0 = None)
                                                         psi0 = 0, chi0 = 0, phi0 = 0)
+end = time.time() - start
+print("Time taken to compute initial conditions was = ", end, "seconds")
 # Check the result?
 
 numerator_psi = I_psi(t_start, psi0, chi0, p0, e0, a, E0, L0, Q0)
@@ -130,8 +134,6 @@ Phi_phi0_new = 2*np.pi * numerator_phi/denom_phi
 print("Old Phi_r0 = {}, new Phi_r0 = {} with psi = {}".format(Phi_r0, Phi_r0_new, psi0))
 print("Old Phi_theta0 = {}, new Phi_theta0 = {} with chi = {}".format(Phi_theta0, Phi_theta0_new, chi0))
 print("Old Phi_phi0 = {}, new Phi_phi0 = {} with phi = {}".format(Phi_phi0, Phi_phi0_new, phi0))
-
-quit()
 
 # Store initial conditions
 y0 = [psi0, chi0,phi0] 
@@ -177,6 +179,6 @@ ax.scatter([0], [0], [0], color='black', s = 100, marker='o',)
 ax.set_xlabel(r'$r\sin\theta\cos\phi$')
 ax.set_ylabel(r'$r\sin\theta\sin\phi$')
 ax.set_zlabel(r'$r\cos\theta$')
-ax.set_title('Near Plunge: Eccentric orbit into a rotating black hole\n$M = 10^{6}M_{\odot}$, $\mu = 10M_{\odot}$, $a = 0.9$, $p_{0} = 5.0$, $e_{0} = 0.5$, $\iota_{0} = 0.3$')
-plt.savefig("Kerr_traj_p0_5_e0_0p5_iota0_0p3.png")
+ax.set_title('$M = 1e6M_\odot$, $\mu = 10M_\odot$, $a =$ {}, $p_0 =$ {}, $e_0 =$ {}, $\iota_0 =$ {}'.format(a,p0,e0,iota0))
+plt.savefig("Kerr_traj_p0_5_e0_0p5_iota0_0p3.pdf", bbox_inches="tight")
 plt.show()
