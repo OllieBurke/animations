@@ -45,7 +45,7 @@ Phi_r0 = 0
 
 # Set up length of trajectory in time (seconds)
 T = 1e4 / (365*24*60*60)
-dt = 10 
+dt = 50 
 
 # Build trajectory - AAK5PN waveform - Using time in [M}]
 traj_module = EMRIInspiral(func = "pn5")
@@ -260,5 +260,5 @@ line_ani = animation.FuncAnimation(fig, func, frames=numDataPoints, fargs=(dataS
 # Save the animation as a video file
 writer = animation.PillowWriter(fps=50, metadata=dict(artist='Your Name'))
 print("Now running!")
-line_ani.save('Kerr_Traj_full_weak_field.gif', writer=writer)
+line_ani.save('Kerr_Traj_full_weak_field_large_dt.gif', writer=writer)
 result = subprocess.run("mv *.gif trajectory_gif", shell=True, capture_output=True, text=True)

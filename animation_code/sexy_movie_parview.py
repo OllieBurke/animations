@@ -34,10 +34,10 @@ import sys
 # Initial conditions
 M = 1e6
 mu = 10.0
-a = 0.9
-p0 = 10.0
-e0 =  0.3
-iota0 = 0.3
+a = 0.0
+p0 = 12.0
+e0 =  0.2
+iota0 = 0.0
 Y0 = np.cos(iota0)
 
 Phi_phi0 = 0
@@ -45,11 +45,11 @@ Phi_theta0 = 0
 Phi_r0 = 0 
 
 # Set up length of trajectory in time (seconds)
-T = 1e4 / (365*24*60*60)
+T = 1e5 / (365*24*60*60)
 dt = 10 
 
 # Build trajectory - AAK5PN waveform - Using time in [M}]
-traj_module = EMRIInspiral(func = "pn5")
+traj_module = EMRIInspiral(func = "SchwarzEccFlux")
 t_traj, p_traj, e_traj, Y_traj, Phi_phi_traj, Phi_r_traj, Phi_theta_traj = traj_module(M, mu, a, p0, e0, Y0, 
                                              Phi_phi0=Phi_phi0, Phi_theta0=Phi_theta0, Phi_r0=Phi_r0, dt = dt, T=T, max_init_len = int(1e7), DENSE_STEPPING = 1, in_coordinate_time=False)
 
@@ -83,48 +83,66 @@ sum_kwargs = {
     "pad_output": False
     }
 
-wave_generator = GenerateEMRIWaveform('Pn5AAKWaveform', inspiral_kwargs = inspiral_kwargs, amplitude_kwargs = amplitude_kwargs,
+wave_generator = GenerateEMRIWaveform('FastSchwarzschildEccentricFlux', frame = "source", inspiral_kwargs = inspiral_kwargs, amplitude_kwargs = amplitude_kwargs,
                                                         Ylm_kwargs = Ylm_kwargs, sum_kwargs = sum_kwargs)
 waveform_EMRI = wave_generator(M, mu, a, p0, e0, Y0, dist, qS, phiS, qK, phiK, 
-                          Phi_phi0=Phi_phi0, Phi_theta0=Phi_theta0, Phi_r0=Phi_r0, dt=dt, T=T) 
+                          Phi_phi0=Phi_phi0, Phi_theta0=Phi_theta0, Phi_r0=Phi_r0, dt=dt, T=T, mode_selection = [(2,2,0)]) 
 
-h_p_true = waveform_EMRI.real
-time = np.arange(0,dt*len(h_p_true),dt)
+breakpoint()
+import pandas as pd
+
+# Combine time and amplitude into a single array for saving
+
+time = np.arange(0,len(waveform_EMRI)*dt, dt)
+
+time_series_data = np.column_stack((np.real(time), waveform_EMRI))
+
+# Step 2: Save the time-series data to a .dat file
+# Specify the filename
+filename = 'time_series_data.dat'
+
+# Use numpy's savetxt to write the data to a file
+np.savetxt(filename, time_series_data, delimiter='\t', header='Time\tAmplitude', comments='')
+
+print(f"Time-series data saved to {filename}")
+
+# h_p_true = waveform_EMRI.real
+# time = np.arange(0,dt*len(h_p_true),dt)
 
 
-delay=0
-# ANIMATION FUNCTION
-def func(num, dataSet, line, axx):
-    # NOTE: there is no .set_data() for 3 dim data...
-    line.set_data(dataSet[0:2, 0:num+delay])    
+# delay=0
+# # ANIMATION FUNCTION
+# def func(num, dataSet, line, axx):
+#     # NOTE: there is no .set_data() for 3 dim data...
+#     line.set_data(dataSet[0:2, 0:num+delay])    
 
-    return line
+#     return line
  
 
-dataSet = np.array([time/360, h_p_true, h_p_true])
-numDataPoints = len(time)
+# dataSet = np.array([time/360, h_p_true, h_p_true])
+# numDataPoints = len(time)
  
-# GET SOME MATPLOTLIB OBJECTS
-fig, ax = plt.subplots(figsize=(16,6))
-plt.ylabel(r'$h_{+}(t)$', fontdict=dict(fontsize=20) )
-plt.xlabel(r'$t$ [hours]',fontdict=dict(fontsize=20) )
-# ax = Axes3D(fig)
-# plt.axis('off')
+# # GET SOME MATPLOTLIB OBJECTS
+# fig, ax = plt.subplots(figsize=(16,6))
+# plt.ylabel(r'$h_{+}(t)$', fontdict=dict(fontsize=20) )
+# plt.xlabel(r'$t$ [hours]',fontdict=dict(fontsize=20) )
+# # ax = Axes3D(fig)
+# # plt.axis('off')
 
 
  
-# NOTE: Can't pass empty arrays into 3d version of plot()
-line = plt.plot(dataSet[0], dataSet[1], lw=4, c='g')[0] # For line plot
+# # NOTE: Can't pass empty arrays into 3d version of plot()
+# line = plt.plot(dataSet[0], dataSet[1], lw=4, c='g')[0] # For line plot
 
 
-# Creating the Animation object
-line_ani = animation.FuncAnimation(fig, func, frames=numDataPoints, fargs=(dataSet,line, ax), interval=5, blit=False)
-# plt.show()
+# # Creating the Animation object
+# line_ani = animation.FuncAnimation(fig, func, frames=numDataPoints, fargs=(dataSet,line, ax), interval=5, blit=False)
+# # plt.show()
 
-from matplotlib.animation import PillowWriter, FFMpegWriter
+# from matplotlib.animation import PillowWriter, FFMpegWriter
 
-# Save the animation as a video file
-writer = animation.PillowWriter(fps=50, metadata=dict(artist='OllieBurke'))
-print("Now running!")
-line_ani.save('Kerr_Wave_p0_12_e0_0_iota0_0p3.gif', writer=writer)
+# # Save the animation as a video file
+# writer = animation.PillowWriter(fps=50, metadata=dict(artist='OllieBurke'))
+# print("Now running!")
+# line_ani.save('Kerr_Traj_p0_12_e0_0_iota0_0p3.gif', writer=writer)
 # result = subprocess.run("mv *.gif waveform_gif", shell=True, capture_output=True, text=True)
