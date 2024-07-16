@@ -42,9 +42,9 @@ def Phi_phi0_r0_theta0_to_psi0_chi0_phi0(Phi_phi0, Phi_theta0, Phi_r0, p0, e0, a
         func_phi0 = I_phi(t_start, psi0, chi0, phi0, p0, e0, a, E0, L0, Q0) - I_phi_target
 
         # Update guesses using a simple method, like Newton-Raphson
-        psi0_new = psi0 - func_psi0 / (I_psi_total / np.pi)  # Derivative approximation
-        chi0_new = chi0 - func_chi0 / (I_chi_total / np.pi)  # Derivative approximation
-        phi0_new = phi0 - func_phi0 / (I_phi_total / np.pi)  # Derivative approximation
+        psi0_new = psi0 - func_psi0 / (1/deriv_psi_t(t_start, psi0, chi0, p0, e0, a,  E0, L0, Q0))  # Derivative approximation
+        chi0_new = chi0 - func_chi0 / (1/deriv_chi_t(t_start, psi0, chi0, p0, e0, a,  E0, L0, Q0)) # Derivative approximation
+        phi0_new = phi0 - func_phi0 / (1/deriv_phi_t(t_start, psi0, chi0, p0, e0, a,  E0, L0, Q0))  # Derivative approximation
 
         # Check for convergence
         if (np.abs(psi0_new - psi0) < tol and
