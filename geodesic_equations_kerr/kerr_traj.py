@@ -5,9 +5,11 @@ from scipy.interpolate import interp1d
 import numpy as np
 import matplotlib.pyplot as plt
 
+from scipy import integrate
 from few.trajectory.inspiral import EMRIInspiral
 from few.utils.utility import Y_to_xI, get_kerr_geo_constants_of_motion
 
+from kerr_init_cond import Phi_phi0_r0_theta0_to_psi0_chi0_phi0, I_psi, I_chi, I_phi
 # for importing the external functions–
 import os
 
@@ -22,8 +24,8 @@ iota0 = 0.3
 Y0 = np.cos(iota0)
 
 Phi_phi0 = 0
-Phi_theta0 = 0
-Phi_r0 = 0 
+Phi_theta0 = np.pi/4
+Phi_r0 = np.pi/5
 
 # Set up length of trajectory in time (seconds)
 one_year = 365*24*60*60
@@ -104,8 +106,30 @@ t_span = (t_start,t_end)
 t_eval = np.arange(t_start, t_end,dt_M)
 
 psi0 = 0 # Here we start at periastron
-chi0 = np.pi/4 # Here we start at theta = iota0. Not sure this is correct
+chi0 = 0 # Here we start at theta = iota0. Not sure this is correct
 phi0 = 0 # Somewhat arbitrary
+
+psi0, chi0, phi0 = Phi_phi0_r0_theta0_to_psi0_chi0_phi0(Phi_phi0, Phi_theta0, Phi_r0, p0, e0, a, E0, L0, Q0,
+                                                        t_start = 0, max_iterations = 100, tol = 1e-10,
+                                                        #psi0 = None, chi0 = None, phi0 = None)
+                                                        psi0 = 0, chi0 = 0, phi0 = 0)
+# Check the result?
+
+numerator_psi = I_psi(t_start, psi0, chi0, p0, e0, a, E0, L0, Q0)
+denom_psi = 2*I_psi(t_start, np.pi, chi0, p0, e0, a, E0, L0, Q0)
+Phi_r0_new = 2*np.pi * numerator_psi/denom_psi
+
+numerator_chi = I_chi(t_start, psi0, chi0, p0, e0, a, E0, L0, Q0)
+denom_chi = 2*I_chi(t_start, psi0, np.pi, p0, e0, a, E0, L0, Q0)
+Phi_theta0_new = 2*np.pi * numerator_chi/denom_chi
+
+numerator_phi = I_phi(t_start, psi0, chi0, phi0, p0, e0, a, E0, L0, Q0)
+denom_phi = 2*I_phi(t_start, psi0, chi0, np.pi, p0, e0, a, E0, L0, Q0)
+Phi_phi0_new = 2*np.pi * numerator_phi/denom_phi
+
+print("Old Phi_r0 = {}, new Phi_r0 = {} with psi = {}".format(Phi_r0, Phi_r0_new, psi0))
+print("Old Phi_theta0 = {}, new Phi_theta0 = {} with chi = {}".format(Phi_theta0, Phi_theta0_new, chi0))
+print("Old Phi_phi0 = {}, new Phi_phi0 = {} with phi = {}".format(Phi_phi0, Phi_phi0_new, phi0))
 
 quit()
 
