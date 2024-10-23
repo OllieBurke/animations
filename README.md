@@ -31,6 +31,6 @@ Feel free to explore the examples and modify the scripts to experiment with diff
 ### Contributors
 
 *Ollie Burke* -- ollie.burke@l2it.in2p3.fr
-Lorenzo Speri -- lorenzo.speri@aei.mpg.de
+Lorenzo Speri -- lorenzo.speri@esa.it
 
 

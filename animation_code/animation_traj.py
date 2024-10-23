@@ -45,7 +45,7 @@ Phi_r0 = 0
 
 # Set up length of trajectory in time (seconds)
 T = 1e4 / (365*24*60*60)
-dt = 50 
+dt = 30 
 
 # Build trajectory - AAK5PN waveform - Using time in [M}]
 traj_module = EMRIInspiral(func = "pn5")
@@ -204,9 +204,11 @@ def func(num, dataSet, line, points, axx):
             points.set_zorder(2)
     except IndexError:
         pass
+
     axx.view_init(elev=16., azim=num/10)  # azim -> how slowly the plot rotates
     
     return line
+
 class Arrow3D(FancyArrowPatch):
     def __init__(self, xs, ys, zs, *args, **kwargs):
         super().__init__((0,0), (0,0), *args, **kwargs)
@@ -252,13 +254,21 @@ if iota0 > 1e-2:
     ax.set_zlim([min(z),max(z)])
 
 
-ax.set_title('Weak Field: Eccentric/Inclined orbit into a rotating black hole\n$M = 10^{6}M_{\odot}$, $\mu = 10M_{\odot}$, $a = 0.9$, $p_{0} = 12.0$, $e_{0} = 0.3$, $\iota_{0} = 0.3$')
+# ax.set_title('Weak Field: Eccentric/Inclined orbit into a rotating black hole\n$M = 10^{6}M_{\odot}$, $\mu = 10M_{\odot}$, $a = 0.9$, $p_{0} = 12.0$, $e_{0} = 0.3$, $\iota_{0} = 0.3$')
 plt.tight_layout()
+
+# Set transparent background
+fig.patch.set_alpha(0)
+ax.patch.set_alpha(0)
+
+# Hide axes
+ax.set_axis_off()
+
 # Creating the Animation object
 line_ani = animation.FuncAnimation(fig, func, frames=numDataPoints, fargs=(dataSet, line, point, ax), interval=5, blit=False)
 
 # Save the animation as a video file
 writer = animation.PillowWriter(fps=50, metadata=dict(artist='Your Name'))
 print("Now running!")
-line_ani.save('Kerr_Traj_full_weak_field_large_dt.gif', writer=writer)
+line_ani.save('Kerr_Traj_full_weak_field_large_dt.gif', writer=writer,savefig_kwargs={"transparent": True})
 result = subprocess.run("mv *.gif trajectory_gif", shell=True, capture_output=True, text=True)
